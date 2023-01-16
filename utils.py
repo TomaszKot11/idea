@@ -7,7 +7,7 @@ from sklearn.cluster import KMeans
 import numpy as np
 from constants import PURPLE, YELLOW, GRAY, HDF5_DATA
 
-
+# TODO: with could be better & more efficient
 f1 = h5py.File(HDF5_DATA, 'r')
 
 def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
