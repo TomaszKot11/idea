@@ -4,26 +4,24 @@ from main import prepare_graph
 
 app = Dash(__name__)
 
-data_prepared = prepare_graph()
+initial_data_prepared = prepare_graph()
 
-# TODO: refactor
 HOURS_AVAILABLE = [
     1,2,3,4, 5, 6, 7, 8, 9, 10, 11, 12, 13,14, 15, 16, 17, 18, 19, 20, 21, 22, 23 ,24
 ]
 
 app.layout = html.Div([
     html.P("Network visuaization sample"),
-    dcc.Dropdown(HOURS_AVAILABLE, '1', id='demo-dropdown'),
-    dcc.Dropdown(HOURS_AVAILABLE, '1', id='demo-dropdown-two'),
+    dcc.Dropdown(HOURS_AVAILABLE, '1', id='hour-one-dropdown'),
+    dcc.Dropdown(HOURS_AVAILABLE, '2', id='hour-two-dropdown'),
     html.Button('Submit', id='submit-val', n_clicks=0),
-    # html.Button('Select', id='submit-val', n_clicks=0),
     cyto.Cytoscape(
         id='cytoscape',
         elements=[
             # nodes
-            *data_prepared['elements']['nodes'],
+            *initial_data_prepared['elements']['nodes'],
             # edges
-            *data_prepared['elements']['edges']
+            *initial_data_prepared['elements']['edges']
         ],
         stylesheet=[
               {
@@ -50,17 +48,20 @@ app.layout = html.Div([
 ])
 
 @app.callback(
-    Output('container-button-basic', 'children'),
+    Output('cytoscape', 'elements'),
     Input('submit-val', 'n_clicks'),
-    State('input-on-submit', 'value')
+    [State('hour-one-dropdown', 'value'), State('hour-two-dropdown', 'value')]
 )
-def update_output(n_clicks, value):
-    for _ in range(5):
-        print("elo elo")
-    return 'The input value was "{}" and the button has been clicked {} times'.format(
-        value,
-        n_clicks
-    )
+def update_output(n_clicks, value, value_two):
+    first_hour = "hour_" + str(value)
+    second_hour = "hour_" + str(value_two)
+    new_data = prepare_graph(first_hour, second_hour)
+    return [
+        # nodes
+        *new_data['elements']['nodes'],
+        # edges
+        *new_data['elements']['edges']
+    ]
 
 if __name__ == '__main__':
     app.run_server(debug=True)

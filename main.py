@@ -75,47 +75,7 @@ PURPLE = '#db2ffe'
 YELLOW = '#feed2f'
 GRAY = '#979795'
 
-first_hour_edges = np.array(f1['results']['hour_1']['branches'][:, 2:3]).flatten()
-second_hour_edges = np.array(f1['results']['hour_2']['branches'][:, 2:3]).flatten()
-edge_direction_array = np.multiply(first_hour_edges, second_hour_edges) > 0
-edges = np.array(f1['results']['hour_1']['branches'][:, 0:2])
-original_graph_directions = f1['results']['hour_1']['branches'][:, 2] > 0
-edges = np.array([np.flip(i) if original_graph_directions[idx]<0 else i for idx, i in enumerate(edges)])
-nodes = np.unique(np.array(edges).flatten())
-edge_labels_showing_flow_absolute_diff = np.round(np.abs(np.array(f1['results']['hour_1']['branches'][:, 2]) - np.array(f1['results']['hour_2']['branches'][:, 2])))
 
-hour_1_genes = np.array(f1['results']['hour_1']['gens'][:, 0:2])
-hour_2_genes = np.array(f1['results']['hour_2']['gens'][:, 0:2])
-
-hour_1_genes_dict = dict(zip(hour_1_genes[:, 0], hour_1_genes[:,1]))
-hour_2_genes_dict = dict(zip(hour_2_genes[:, 0], hour_2_genes[:,1]))
-
-for i in nodes: 
-    if i not in hour_1_genes_dict: 
-        hour_1_genes_dict[i] = 0
-    if i not in hour_2_genes_dict: 
-        hour_2_genes_dict[i] = 0
-
-genes_hour_1 = np.array([[i, hour_1_genes_dict[i]] for i in hour_1_genes_dict])
-genes_hour_2 = np.array([[i, hour_2_genes_dict[i]] for i in hour_2_genes_dict])
-
-generation_hour_1_types = genes_hour_1[:,1] - np.array(f1['results']['hour_1']['nodes'][:, 2])
-generation_hour_2_types = genes_hour_2[:,1] - np.array(f1['results']['hour_1']['nodes'][:, 2])
-
-node_types_hour_1 = np.array([2 if i > 0 else 1 for i in generation_hour_1_types])
-node_types_hour_2 = np.array([2 if i >= 0 else 1 for i in generation_hour_2_types]) # TODO: just a dummy example
-type_changes = []
-for i in (node_types_hour_1 - node_types_hour_2):
-    if i == -1:
-        type_changes.append(PURPLE)
-    elif i == 1:
-        type_changes.append(YELLOW)
-    else:
-        type_changes.append(GRAY)
-
-for _ in range(5):
-    print('&&&')
-print(type_changes)
 
 # 1->2 
 # Is generator
@@ -153,7 +113,45 @@ print(type_changes)
 # < generates energy
 
 
-def prepare_graph():
+def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
+    first_hour_edges = np.array(f1['results'][first_data]['branches'][:, 2:3]).flatten()
+    second_hour_edges = np.array(f1['results'][second_data]['branches'][:, 2:3]).flatten()
+    edge_direction_array = np.multiply(first_hour_edges, second_hour_edges) > 0
+    edges = np.array(f1['results'][first_data]['branches'][:, 0:2])
+    original_graph_directions = f1['results'][first_data]['branches'][:, 2] > 0
+    edges = np.array([np.flip(i) if original_graph_directions[idx]<0 else i for idx, i in enumerate(edges)])
+    nodes = np.unique(np.array(edges).flatten())
+    edge_labels_showing_flow_absolute_diff = np.round(np.abs(np.array(f1['results'][first_data]['branches'][:, 2]) - np.array(f1['results'][second_data]['branches'][:, 2])))
+
+    hour_1_genes = np.array(f1['results'][first_data]['gens'][:, 0:2])
+    hour_2_genes = np.array(f1['results'][second_data]['gens'][:, 0:2])
+
+    hour_1_genes_dict = dict(zip(hour_1_genes[:, 0], hour_1_genes[:,1]))
+    hour_2_genes_dict = dict(zip(hour_2_genes[:, 0], hour_2_genes[:,1]))
+
+    for i in nodes: 
+        if i not in hour_1_genes_dict: 
+            hour_1_genes_dict[i] = 0
+        if i not in hour_2_genes_dict: 
+            hour_2_genes_dict[i] = 0
+
+    genes_hour_1 = np.array([[i, hour_1_genes_dict[i]] for i in hour_1_genes_dict])
+    genes_hour_2 = np.array([[i, hour_2_genes_dict[i]] for i in hour_2_genes_dict])
+
+    generation_hour_1_types = genes_hour_1[:,1] - np.array(f1['results'][first_data]['nodes'][:, 2])
+    generation_hour_2_types = genes_hour_2[:,1] - np.array(f1['results'][second_data]['nodes'][:, 2])
+
+    node_types_hour_1 = np.array([2 if i > 0 else 1 for i in generation_hour_1_types])
+    node_types_hour_2 = np.array([2 if i >= 0 else 1 for i in generation_hour_2_types]) # TODO: just a dummy example
+    type_changes = []
+    for i in (node_types_hour_1 - node_types_hour_2):
+        if i == -1:
+            type_changes.append(PURPLE)
+        elif i == 1:
+            type_changes.append(YELLOW)
+        else:
+            type_changes.append(GRAY)
+
     # build graph to visualize 
     graph = nx.DiGraph() 
 
@@ -190,20 +188,3 @@ def prepare_graph():
     # plt.show()
 
     return nx.cytoscape_data(graph)
-
-
-    # for _ in range(25):
-    #     print("---------")
-
-    # print(nx.cytoscape_data(graph)['elements'])
-
-    # for _ in range(25): 
-    #     print("END------")
-
-    # print(nx.cytoscape_data(graph)['elements']['edges'])
-
-    # for _ in range(30):
-    #     print("siema siema sieam")
-
-    # print(nx.cytoscape_data(graph))
-    # # elo = input("end?")
