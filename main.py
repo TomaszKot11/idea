@@ -153,55 +153,57 @@ print(type_changes)
 # < generates energy
 
 
+def prepare_graph():
+    # build graph to visualize 
+    graph = nx.DiGraph() 
 
-# build graph to visualize 
-graph = nx.DiGraph() 
+    for node in nodes: 
+        graph.add_node(node)
 
-for node in nodes: 
-    graph.add_node(node)
+    edge_labels = np.array([])
+    # Add edges
+    for idx, edge in enumerate(edges):
+        edge_color = 'green' if edge_direction_array[idx] else 'black'
+        edge_directed = edge if not(edge_direction_array[idx]) else np.flip(edge)
+        edge_weight = edge_labels_showing_flow_absolute_diff[idx]
+        edge_args = { 'color': edge_color, 'weight': edge_weight } if edge_weight > 0 else { 'color': edge_color }
+        graph.add_edge(str(edge_directed[0]), str(edge_directed[1]), **edge_args)
 
-edge_labels = np.array([])
-# Add edges
-for idx, edge in enumerate(edges):
-    edge_color = 'green' if edge_direction_array[idx] else 'black'
-    edge_directed = edge if not(edge_direction_array[idx]) else np.flip(edge)
-    edge_weight = edge_labels_showing_flow_absolute_diff[idx]
-    edge_args = { 'color': edge_color, 'weight': edge_weight } if edge_weight > 0 else { 'color': edge_color }
-    graph.add_edge(edge_directed[0], edge_directed[1], **edge_args)
+    edge_colors = nx.get_edge_attributes(graph,'color').values()
+    weight_labels = nx.get_edge_attributes(graph,'weight')
 
-edge_colors = nx.get_edge_attributes(graph,'color').values()
-weight_labels = nx.get_edge_attributes(graph,'weight')
+    # pos = nx.kamada_kawai_layout(graph)
+    # from matplotlib.lines import Line2D
 
-pos = nx.kamada_kawai_layout(graph)
-from matplotlib.lines import Line2D
+    # legend_elements = [
+    #     Line2D([0], [0], marker='_', linewidth='2.0', color='g', label='Flow direction change',markerfacecolor='g', markersize=15), 
+    #     Line2D([0], [0], marker='o', color='w', label='Node is now a generator',markerfacecolor=PURPLE, markersize=15), 
+    #     Line2D([0], [0], marker='o', color='w', label='Node now is slave',markerfacecolor=YELLOW, markersize=15), 
+    # ]
 
-legend_elements = [
-    Line2D([0], [0], marker='_', linewidth='2.0', color='g', label='Flow direction change',markerfacecolor='g', markersize=15), 
-    Line2D([0], [0], marker='o', color='w', label='Node is now a generator',markerfacecolor=PURPLE, markersize=15), 
-    Line2D([0], [0], marker='o', color='w', label='Node now is slave',markerfacecolor=YELLOW, markersize=15), 
-]
+    # plt.figure(3,figsize=(12,12))
+    # nx.draw(graph, pos, edge_color = edge_colors, with_labels=True, node_color=type_changes)
+    # nx.draw_networkx_edge_labels(graph, pos, edge_labels=weight_labels)
 
-plt.figure(3,figsize=(12,12))
-nx.draw(graph, pos, edge_color = edge_colors, with_labels=True, node_color=type_changes)
-nx.draw_networkx_edge_labels(graph, pos, edge_labels=weight_labels)
+    # # Show legend for the graph
+    # plt.legend(handles=legend_elements, loc='upper right')
+    # plt.show()
 
-# Show legend for the graph
-plt.legend(handles=legend_elements, loc='upper right')
-plt.show()
+    return nx.cytoscape_data(graph)
 
 
-for _ in range(25):
-    print("---------")
+    # for _ in range(25):
+    #     print("---------")
 
-print(nx.cytoscape_data(graph)['elements'])
+    # print(nx.cytoscape_data(graph)['elements'])
 
-for _ in range(25): 
-    print("END------")
+    # for _ in range(25): 
+    #     print("END------")
 
-print(nx.cytoscape_data(graph)['elements']['edges'])
+    # print(nx.cytoscape_data(graph)['elements']['edges'])
 
-for _ in range(30):
-    print("siema siema sieam")
+    # for _ in range(30):
+    #     print("siema siema sieam")
 
-print(nx.cytoscape_data(graph))
-elo = input("end?")
+    # print(nx.cytoscape_data(graph))
+    # # elo = input("end?")
