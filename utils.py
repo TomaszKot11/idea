@@ -5,17 +5,22 @@ import matplotlib.pyplot as plt
 import random
 from sklearn.cluster import KMeans
 import numpy as np
+from constants import PURPLE, YELLOW, GRAY, HDF5_DATA
 
 
-f1 = h5py.File('task_data.hdf5', 'r')
-
-# TODO: consts + to separate file
-PURPLE = '#db2ffe'
-YELLOW = '#feed2f'
-GRAY = '#979795'
-MEGA_DEC = 6
+f1 = h5py.File(HDF5_DATA, 'r')
 
 def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
+    '''
+    Returns the Cytospace.js formatted data visualizing the difference between the 
+    network in two snapshots
+            Parameters:
+                    first_data  (str): Name of first snapshot data
+                    second_data (str): Name of second snapshot data
+
+            Returns:
+                    graph_cytospace_data (dict): Cytospace.js dictionary (JSON) for Dash
+    '''
     first_hour_edges = np.array(f1['results'][first_data]['branches'][:, 2:3]).flatten()
     second_hour_edges = np.array(f1['results'][second_data]['branches'][:, 2:3]).flatten()
 
@@ -49,7 +54,8 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
     generation_hour_2_types = genes_hour_2[:,1] - np.array(f1['results'][second_data]['nodes'][:, 2])
 
     node_types_hour_1 = np.array([2 if i > 0 else 1 for i in generation_hour_1_types])
-    node_types_hour_2 = np.array([2 if i > 0 else 1 for i in generation_hour_2_types]) # TODO: just a dummy example
+    node_types_hour_2 = np.array([2 if i > 0 else 1 for i in generation_hour_2_types])
+    
     type_changes = []
     # TODO: refactor
     for i in (node_types_hour_1 - node_types_hour_2):
@@ -66,7 +72,6 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
     for idx, node in enumerate(nodes): 
         graph.add_node(node, color=type_changes[idx])
 
-    edge_labels = np.array([])
     # Add edges
     for idx, edge in enumerate(edges):
         edge_color = 'green' if edge_direction_array[idx] else 'gray'
@@ -77,13 +82,16 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
 
     return nx.cytoscape_data(graph)
 
-#TODO: read_edgelist?
-
-def random_hex_color():
-    return '#' + str(hex(random.randint(0,16777215)))[2:]
-
 # TODO: refactor code duplicate
 def cluster_graph(no_groups, hour_two = 'hour_2'):
+    '''
+    Using KMeans clustering divides the flows of edges
+            Parameters:
+                    no_groups   (int): number of clusters
+                    hour_two   (str): Name of the snapshot data
+            Returns:
+                    graph_cytospace_data (dict): Cytospace.js dictionary (JSON) for Dash
+    '''
     graph = nx.DiGraph()
     edges = np.array(f1['results'][hour_two]['branches'][:, 0:2])
     original_graph_directions = f1['results'][hour_two]['branches'][:, 2] > 0
@@ -97,7 +105,7 @@ def cluster_graph(no_groups, hour_two = 'hour_2'):
 
     color_dict = {}
     for label in list(np.arange(no_groups)): 
-        color_dict[label] = random_hex_color() # TODO: make generation better
+        color_dict[label] = _random_hex_color() # TODO: make generation better
 
     edge_colors = list(map(lambda x: color_dict[x], k_means_model_labels))
 
@@ -109,3 +117,9 @@ def cluster_graph(no_groups, hour_two = 'hour_2'):
         graph.add_edge(str(edge[0]), str(edge[1]), **edge_args)
 
     return nx.cytoscape_data(graph)
+
+
+#TODO: read_edgelist?
+def _random_hex_color():
+    '''Dummy method for random HEX color generation'''
+    return '#' + str(hex(random.randint(0,16777215)))[2:]

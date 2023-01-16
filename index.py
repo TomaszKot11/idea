@@ -4,7 +4,7 @@ import dash_daq as daq
 from utils import prepare_graph, cluster_graph
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
-from utils import PURPLE, YELLOW, GRAY
+from constants import PURPLE, YELLOW, GRAY, SELECT_HOURS_AVAILABLE
 import numpy as np
 
 app = Dash(__name__)
@@ -16,8 +16,6 @@ initial_data_prepared = prepare_graph()
 #         Line2D([0], [0], marker='o', color='w', label='Node is now a generator',markerfacecolor=PURPLE, markersize=15), 
 #         Line2D([0], [0], marker='o', color='w', label='Node now is slave',markerfacecolor=YELLOW, markersize=15), 
 # ]
-
-HOURS_AVAILABLE = list(np.arange(1, 25))
 
 app.layout = html.Div([
     html.P("Network visuaization sample"),
@@ -68,7 +66,7 @@ app.layout = html.Div([
                 }
             },
         ],
-        layout={'name': 'cose'}, #TODO: chose layout?
+        layout={'name': 'cose' }, #TODO: chose layout?
         style={'width': '1080px', 'height': '1500px'}
     )
 ])
