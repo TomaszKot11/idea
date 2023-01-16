@@ -155,8 +155,8 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
     # build graph to visualize 
     graph = nx.DiGraph() 
 
-    for node in nodes: 
-        graph.add_node(node)
+    for idx, node in enumerate(nodes): 
+        graph.add_node(node, color=type_changes[idx])
 
     edge_labels = np.array([])
     # Add edges
@@ -173,11 +173,7 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
     # pos = nx.kamada_kawai_layout(graph)
     # from matplotlib.lines import Line2D
 
-    # legend_elements = [
-    #     Line2D([0], [0], marker='_', linewidth='2.0', color='g', label='Flow direction change',markerfacecolor='g', markersize=15), 
-    #     Line2D([0], [0], marker='o', color='w', label='Node is now a generator',markerfacecolor=PURPLE, markersize=15), 
-    #     Line2D([0], [0], marker='o', color='w', label='Node now is slave',markerfacecolor=YELLOW, markersize=15), 
-    # ]
+ 
 
     # plt.figure(3,figsize=(12,12))
     # nx.draw(graph, pos, edge_color = edge_colors, with_labels=True, node_color=type_changes)
