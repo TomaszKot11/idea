@@ -1,9 +1,9 @@
-from dash import Dash, html, dcc, Input, Output, State, dash_table
+from dash import Dash, html, dcc, Input, Output, State, dash_table, callback_context
 import dash_cytoscape as cyto
-from main import prepare_graph
+from utils import prepare_graph, cluster_graph
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
-from main import PURPLE, YELLOW, GRAY
+from utils import PURPLE, YELLOW, GRAY
 
 app = Dash(__name__)
 
@@ -25,10 +25,14 @@ HOURS_AVAILABLE = [
 
 app.layout = html.Div([
     html.P("Network visuaization sample"),
-    dcc.Dropdown(HOURS_AVAILABLE, '1', id='hour-one-dropdown'),
-    dcc.Dropdown(HOURS_AVAILABLE, '2', id='hour-two-dropdown'),
-    html.Button('Submit', id='submit-val', n_clicks=0),
-    # TODO: more colors
+    dcc.Dropdown(HOURS_AVAILABLE, '1', id='hour-one-dropdown'), # TODO: add some label
+    dcc.Dropdown(HOURS_AVAILABLE, '2', id='hour-two-dropdown'), # TODO: add some label
+    html.Button('Show difference', id='submit-val', n_clicks=0),
+    html.Br(),
+    dcc.Input(id='no-clusters', placeholder='Insert here number of clusters', value=2),
+    html.Br(),
+    html.Button('Show clusters', id='submit-cluster-val', n_clicks=0),
+    # TODO: more colors and better legend + hide when cluster
     dash_table.DataTable([{"Kolor": "Zielony", "Wytłumaczenie": "Zmiana kierunku przepływu"},
                           {"Kolor": "Filetowy", "Wytłumaczenie": "Zmiana stanu węzła na generator"}, 
                           {"Kolor": "Żółty", "Wytłumaczenie": "Zmiana stanu węzła na pobór"}, 
@@ -63,6 +67,7 @@ app.layout = html.Div([
                     'target-arrow-shape': 'triangle',
                     'targetArrowShape': 'triangle',
                     'curveStyle': 'bezier'
+                    # TODO: make label more visible
                 }
             },
         ],
@@ -73,13 +78,19 @@ app.layout = html.Div([
 
 @app.callback(
     Output('cytoscape', 'elements'),
-    Input('submit-val', 'n_clicks'),
-    [State('hour-one-dropdown', 'value'), State('hour-two-dropdown', 'value')]
+    [Input('submit-val', 'n_clicks'), Input('submit-cluster-val', 'n_clicks')],
+    [
+        State('hour-one-dropdown', 'value'),
+        State('hour-two-dropdown', 'value'),
+        State('no-clusters', 'value')
+    ]
 )
-def update_output(n_clicks, value, value_two):
+def produce_cyto_data(n_clicks, n_clicks_two, value, value_two, no_clusters):
     first_hour = "hour_" + str(value)
     second_hour = "hour_" + str(value_two)
-    new_data = prepare_graph(first_hour, second_hour)
+    trigger_id = callback_context.triggered[0]["prop_id"].split(".")[0]
+    
+    new_data = prepare_graph(first_hour, second_hour) if trigger_id == 'submit-val' else cluster_graph(no_clusters, second_hour)
     return [
         # nodes
         *new_data['elements']['nodes'],
