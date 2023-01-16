@@ -1,5 +1,6 @@
 from dash import Dash, html, dcc, Input, Output, State, dash_table, callback_context
 import dash_cytoscape as cyto
+import dash_daq as daq
 from utils import prepare_graph, cluster_graph
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ app.layout = html.Div([
     dcc.Dropdown(HOURS_AVAILABLE, '2', id='hour-two-dropdown'), # TODO: add some label
     html.Button('Show difference', id='submit-val', n_clicks=0),
     html.Br(),
-    dcc.Input(id='no-clusters', placeholder='Insert here number of clusters', value=2),
+    daq.NumericInput(id='no-clusters', value=2),
     html.Br(),
     html.Button('Show clusters', id='submit-cluster-val', n_clicks=0),
     # TODO: more colors and better legend + hide when cluster
