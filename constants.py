@@ -1,3 +1,5 @@
+import numpy as np 
+
 PURPLE = '#db2ffe'
 YELLOW = '#feed2f'
 GRAY = '#979795'

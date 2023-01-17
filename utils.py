@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import random
 from sklearn.cluster import KMeans
 import numpy as np
-from constants import PURPLE, YELLOW, GRAY, HDF5_DATA
+from constants import PURPLE, YELLOW, GRAY, HDF5_DATA, MEGA_DEC
 
-# TODO: with could be better & more efficient
+# TODO: with could be better & more efficient + closing the resource!
 f1 = h5py.File(HDF5_DATA, 'r')
 
 def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
@@ -21,17 +21,21 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
             Returns:
                     graph_cytospace_data (dict): Cytospace.js dictionary (JSON) for Dash
     '''
+    # Edges for compared networks
     first_hour_edges = np.array(f1['results'][first_data]['branches'][:, 2:3]).flatten()
     second_hour_edges = np.array(f1['results'][second_data]['branches'][:, 2:3]).flatten()
-
+    # Direction of edges - Boolean table
     edge_direction_array = np.multiply(first_hour_edges, second_hour_edges) > 0
     
     edges = np.array(f1['results'][first_data]['branches'][:, 0:2])
     original_graph_directions = f1['results'][first_data]['branches'][:, 2] > 0
-    edges = np.array([np.flip(i) if original_graph_directions[idx]<0 else i for idx, i in enumerate(edges)])
+    # Get the edges in proper direction for resulting comparistion graph
+    edges = np.array([np.flip(i) if original_graph_directions[idx] < 0 else i for idx, i in enumerate(edges)])
+    # Nodes for a graph
     nodes = np.unique(np.array(edges).flatten())
     edge_labels_showing_flow_absolute_diff = np.round(np.abs(np.array(f1['results'][first_data]['branches'][:, 2]) - np.array(f1['results'][second_data]['branches'][:, 2])))
 
+    # Balancing a node
     hour_1_genes = np.array(f1['results'][first_data]['gens'][:, 0:2])
     hour_2_genes = np.array(f1['results'][second_data]['gens'][:, 0:2])
 
@@ -53,9 +57,11 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
     generation_hour_1_types = genes_hour_1[:,1] - np.array(f1['results'][first_data]['nodes'][:, 2])
     generation_hour_2_types = genes_hour_2[:,1] - np.array(f1['results'][second_data]['nodes'][:, 2])
 
+    # Type 2 or 1 if the generator or slave
     node_types_hour_1 = np.array([2 if i > 0 else 1 for i in generation_hour_1_types])
     node_types_hour_2 = np.array([2 if i > 0 else 1 for i in generation_hour_2_types])
     
+    # End of balancing nodes
     type_changes = []
     # TODO: refactor
     for i in (node_types_hour_1 - node_types_hour_2):
@@ -69,10 +75,11 @@ def prepare_graph(first_data = 'hour_1', second_data = 'hour_2'):
     # build graph to visualize 
     graph = nx.DiGraph() 
 
+    # Nodes with color depending on the generation/slave characteristics
     for idx, node in enumerate(nodes): 
         graph.add_node(node, color=type_changes[idx])
 
-    # Add edges
+    # Add edges with proper "metadata" for Cytospace.js
     for idx, edge in enumerate(edges):
         edge_color = 'green' if edge_direction_array[idx] else 'gray'
         edge_directed = edge if not(edge_direction_array[idx]) else np.flip(edge)
@@ -99,7 +106,7 @@ def cluster_graph(no_groups, hour_two = 'hour_2'):
     nodes = np.unique(np.array(edges).flatten())
     weights = [[abs(i)] for idx, i in enumerate(np.array(f1['results'][hour_two]['branches'][:, 2:3]).flatten())] # TODO: optimize
 
-    # K-means
+    # K-means to have distribution of edges
     k_means = KMeans(n_clusters=no_groups, random_state=0)
     k_means_model_labels = k_means.fit(weights).labels_
 
@@ -119,7 +126,7 @@ def cluster_graph(no_groups, hour_two = 'hour_2'):
     return nx.cytoscape_data(graph)
 
 
-#TODO: read_edgelist?
+#TODO: check read_edgelist?
 def _random_hex_color():
     '''Dummy method for random HEX color generation'''
     return '#' + str(hex(random.randint(0,16777215)))[2:]

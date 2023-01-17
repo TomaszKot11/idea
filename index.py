@@ -19,8 +19,8 @@ initial_data_prepared = prepare_graph()
 
 app.layout = html.Div([
     html.P("Network visuaization sample"),
-    dcc.Dropdown(HOURS_AVAILABLE, '1', id='hour-one-dropdown'), # TODO: add some label
-    dcc.Dropdown(HOURS_AVAILABLE, '2', id='hour-two-dropdown'), # TODO: add some label
+    dcc.Dropdown(SELECT_HOURS_AVAILABLE, '1', id='hour-one-dropdown'), # TODO: add some label
+    dcc.Dropdown(SELECT_HOURS_AVAILABLE, '2', id='hour-two-dropdown'), # TODO: add some label
     html.Button('Show difference', id='submit-val', n_clicks=0),
     html.Br(),
     daq.NumericInput(id='no-clusters', value=2),
